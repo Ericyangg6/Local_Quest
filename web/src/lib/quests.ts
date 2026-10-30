@@ -19,7 +19,7 @@ export interface QuestDocument {
   /** One entry per stop: when the player checked in, or null. Same length as route.quests. */
   checkIns: (Date | null)[];
   status: "active" | "done";
-  /** True when the API used mock data (DATA_PROVIDER/AI_PROVIDER=mock). */
+  /** True when the quest was planned in mock mode (QUEST_PLANNER=mock). */
   mock: boolean;
   createdAt: Date;
   /** Set when the player presses "Start quest"; check-ins are accepted only after this. */

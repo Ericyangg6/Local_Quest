@@ -11,6 +11,10 @@
   - Doc cleanup also removed `docs/TEAM-CONTRACT.md`, `docs/PLAN.md`, `docs/skills.md`, `.skillls/`,
     `README-SNOWFLAKE-CHAIN-FLAG.md`, `snowflake/PLAN.md` (folded into `snowflake/README.md`), and the
     template `AGENTS.md` files in `contracts/`, `data/`, `tests/`, `snowflake/`.
+  - Configuration is one project-wide `.env` (template `.env.example`); `web/next.config.ts` loads it,
+    and `web/.env.example` was removed.
+  - Docker support (`web/Dockerfile`, `docker-compose.yml`, CI Docker job) was removed: the app is
+    hosted only on Vercel.
   - Still to do for phase 1: deploy to Vercel (`docs/Deployment.md`), run the Playwright suite, and
     delete the Render service.
 - Phases 2–3: not started.

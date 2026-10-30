@@ -31,7 +31,7 @@ do not add one without an architecture decision.
 
 ## Secrets and data
 - Snowflake keys and other secrets live only in server environment settings or local
-  ignored files (`.env`, `web/.env.local`). Never in source, logs, fixtures, or the browser.
+  ignored file `.env` (one file for the whole project; template `.env.example`). Never in source, logs, fixtures, or the browser.
 - The app uses the least-privilege Snowflake role `LQ_APP_RO`; the owner role `LQ_OWNER`
   is only for `snowflake/scripts/lq.py`.
 - Snowflake schema changes go through versioned files in `snowflake/sql/`.

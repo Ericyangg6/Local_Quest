@@ -24,11 +24,12 @@ times and checks budget, closing times, and the time limit → quest saved and s
 ## Run locally
 ```bash
 # 1. MongoDB (any local or hosted instance works)
-docker run -d --name localquest-mongo -p 27017:27017 mongo:7   # later: docker start localquest-mongo
+docker run -d --name localquest-mongo -p 27017:27017 mongo:7   # or: brew services start mongodb-community
 
-# 2. Config (once): set AUTH_SECRET (npx auth secret) and DATABASE_URL=mongodb://localhost:27017/localquest.
-#    QUEST_PLANNER=mock works offline; for live quests set QUEST_PLANNER=snowflake and the SNOWFLAKE_* login.
-cp web/.env.example web/.env.local
+# 2. Config (once), one .env for everything: set AUTH_SECRET (npx auth secret) and
+#    DATABASE_URL=mongodb://localhost:27017/localquest. QUEST_PLANNER=mock works offline;
+#    for live quests set QUEST_PLANNER=snowflake and the SNOWFLAKE_* login.
+cp .env.example .env
 
 # 3. Web app on :3000
 cd web && npm install && npm run dev
@@ -41,12 +42,12 @@ End to end, with the app running:
 `E2E_DATABASE_URL=mongodb://localhost:27017/localquest E2E_BROWSER_CHANNEL=chromium npx playwright test`
 (run `npx playwright install chromium` once; the Google test also needs real Google credentials).
 
-Snowflake setup and data loading (owner only): [snowflake/README.md](snowflake/README.md), using
-`local-quest/.env` (template [.env.example](.env.example)).
+Snowflake setup and data loading (owner only): [snowflake/README.md](snowflake/README.md). It uses
+the same `.env` (template [.env.example](.env.example)).
 
 ## Deploy
-Vercel + MongoDB Atlas, or Docker Compose on one server: [docs/Deployment.md](docs/Deployment.md).
-CI (`.github/workflows/ci.yml`) runs lint, build, typecheck, unit tests, and the Docker build.
+Vercel + MongoDB Atlas: [docs/Deployment.md](docs/Deployment.md).
+CI (`.github/workflows/ci.yml`) runs lint, build, typecheck, and unit tests.
 
 ## License
 The application code is released under the [MIT License](LICENSE)

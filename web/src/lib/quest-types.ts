@@ -38,7 +38,6 @@ export const questRouteSchema = z.object({
 export type QuestRoute = z.infer<typeof questRouteSchema>;
 export type QuestStop = z.infer<typeof stopSchema>;
 export type QuestTask = z.infer<typeof taskSchema>;
-export type QuestTaskId = QuestTask["id"];
 
 export interface QuestPreferences {
   /** Minutes for the whole outing, including the drive home. */

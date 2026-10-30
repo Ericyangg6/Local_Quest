@@ -252,9 +252,3 @@ export async function complete(prompt: string): Promise<string> {
   }
   return text;
 }
-
-/** For tests: forget cached settings and tokens. */
-export function resetSnowflakeForTests() {
-  cachedConfig = undefined;
-  cachedToken = undefined;
-}

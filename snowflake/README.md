@@ -63,8 +63,8 @@ addresses are not.
 
 ## Run
 One-time local setup: create `snowflake/.venv` with `snowflake-connector-python`.
-Configuration lives in `local-quest/.env` (template: `local-quest/.env.example`); the web
-app has its own settings in `web/.env.local`. It is gitignored, and the key file stays
+Configuration lives in `local-quest/.env` (template: `local-quest/.env.example`), the same file
+the web app uses. It is gitignored, and the key file stays
 outside the repo.
 
 ```sh

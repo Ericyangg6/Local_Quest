@@ -31,8 +31,6 @@ export const registrationSchema = z
     }
   });
 
-export type RegistrationInput = z.infer<typeof registrationSchema>;
-
 /** Sign-in only checks shape; it never reports which rule failed, to keep errors generic. */
 export const signInSchema = z.object({
   username: z.string().trim().toLowerCase().min(1).max(64),

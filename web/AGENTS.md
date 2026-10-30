@@ -16,7 +16,8 @@ For teammates and their AI assistants. Scope: `web/`.
 - Commands (verified): `npm install`, `npm run dev` (port 3000), `npm run build`,
   `npm run typecheck`, `npm run lint`, `npm test` (unit), `npm run test:e2e`
   (needs a running app on a disposable database; see `playwright.config.ts`).
-- Config: copy `.env.example` to `.env.local`; never commit real values.
+- Config: one project-wide `../.env` (template `../.env.example`), loaded by `next.config.ts`;
+  never commit real values. Hosts set the same names in their environment settings.
 - Screens: landing (`/`), register (`/register`), sign-in (`/sign-in`), Quests
   (`/quests`, protected, where users land after sign-in), and Profile (`/profile`,
   protected) from the LocalQuest Figma file (`dNPMN12L6f9V9tFchiIdeH`). The quest

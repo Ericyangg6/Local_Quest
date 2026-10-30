@@ -83,12 +83,6 @@ export async function getPlayerSummary(id: ObjectId): Promise<PlayerSummary | nu
   return user ? toSummary(user) : null;
 }
 
-/** True only when the two players have an accepted friendship (pending requests don't count). */
-export async function areFriends(a: ObjectId, b: ObjectId): Promise<boolean> {
-  const friendships = await getFriendshipsCollection();
-  return (await friendships.countDocuments({ pairKey: pairKey(a, b), status: "accepted" }, { limit: 1 })) > 0;
-}
-
 /** Accepted friends plus pending requests in both directions for one player. */
 export async function getFriendsOverview(userId: ObjectId): Promise<FriendsOverview> {
   const friendships = await getFriendshipsCollection();

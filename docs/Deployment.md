@@ -8,15 +8,15 @@ Steps marked *unverified* have not been run in this form.
 
 | Piece | Runs as | Needs |
 |---|---|---|
-| Web app (`web/`, Next.js) | Vercel project (root `web`), or `web/Dockerfile` | MongoDB, Snowflake key-pair login, Google OAuth client |
-| MongoDB | MongoDB Atlas (free M0) or the `mongo:7` container | persistent storage |
+| Web app (`web/`, Next.js) | Vercel project (root `web`) | MongoDB, Snowflake key-pair login, Google OAuth client |
+| MongoDB | MongoDB Atlas (free M0) | persistent storage |
 | Snowflake procedure + Cortex model | already deployed in account `LHXLXHN-WY63275` | redeploy only after `snowflake/python` changes (`snowflake/scripts/lq.py deploy`) |
 
 Snowflake is called only from the Next.js server, after the session check, with the
 least-privilege role `LQ_APP_RO` (it can only run the procedure and Cortex).
 
 ## Configuration (names only; values go in the host's secret settings)
-Template: `web/.env.example`.
+Template: `.env.example` (locally everything goes in `local-quest/.env`).
 - `AUTH_SECRET` (new per environment, `npx auth secret`), `AUTH_GOOGLE_ID`, `AUTH_GOOGLE_SECRET`,
   `DATABASE_URL`.
 - `QUEST_PLANNER=snowflake`, `QUEST_TIMEZONE=America/Los_Angeles`.
@@ -25,7 +25,7 @@ Template: `web/.env.example`.
   if encrypted, `SNOWFLAKE_ROLE=LQ_APP_RO`, `SNOWFLAKE_WAREHOUSE=LQ_WH`,
   `SNOWFLAKE_DATABASE=LOCAL_QUEST`, `SNOWFLAKE_SCHEMA=APP`, `SNOWFLAKE_AI_MODEL=llama3.3-70b`,
   `SNOWFLAKE_QUERY_TIMEOUT_S=40`.
-- Off Vercel: `AUTH_TRUST_HOST=true`; behind a proxy: `TRUST_PROXY=true`.
+- Only if hosting somewhere other than Vercel: `AUTH_TRUST_HOST=true`, and `TRUST_PROXY=true` behind a proxy.
 
 Google Cloud Console: add `https://<your-domain>/api/auth/callback/google` to the OAuth
 client's authorized redirect URIs.
@@ -54,12 +54,6 @@ allows up to 300 s). Vercel deploys every push to `main` and makes a preview for
 
 Record the URLs and who can deploy: Vercel project [TO FILL], Atlas cluster [TO FILL].
 
-## Alternative: one server with Docker Compose (unverified since the merge)
-`docker-compose.yml` runs MongoDB + the web app. Fill in `web/.env.local` (live settings above,
-key as a file), then `SNOWFLAKE_PRIVATE_KEY_PATH=/path/to/key.p8 docker compose up -d --build`
-and put HTTPS in front of port 3000. The container runs as user `node`, so the key file must be
-readable by it.
-
 ## Before every deploy
 1. CI is green (`.github/workflows/ci.yml`). Make it required with branch protection on `main`;
    the workflow file alone doesn't enforce it.
@@ -78,8 +72,6 @@ Record the date, URL, commit, and results under **Result**.
 
 ## Rollback
 - **Vercel:** Deployments → last good production deployment → Instant Rollback.
-- **Docker Compose:** `git checkout <last good SHA> && docker compose up -d --build` (data stays in
-  the `mongo-data` volume; `docker compose down -v` would delete it).
 - **Snowflake ranking:** check out the previous `snowflake/python/lq_snowflake` and run
   `snowflake/.venv/bin/python snowflake/scripts/lq.py deploy` (code only).
 - Re-run the smoke check after any rollback.

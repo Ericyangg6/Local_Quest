@@ -42,10 +42,3 @@ jobs:
       - run: npm test
         env:
           TEST_DATABASE_URL: mongodb://localhost:27017/localquest_ci
-
-  docker:
-    name: Docker image builds
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - run: docker build -t local-quest-web ./web

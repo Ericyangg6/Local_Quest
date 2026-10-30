@@ -32,7 +32,7 @@ const globalForMongo = globalThis as typeof globalThis & { _localQuestMongo?: Pr
 export function getMongoClient(): Promise<MongoClient> {
   if (!globalForMongo._localQuestMongo) {
     const url = process.env.DATABASE_URL;
-    if (!url) throw new Error("DATABASE_URL is not set. See web/.env.example.");
+    if (!url) throw new Error("DATABASE_URL is not set. See .env.example in the project folder.");
     globalForMongo._localQuestMongo = new MongoClient(url).connect().then(async (client) => {
       await ensureIndexes(client);
       return client;
