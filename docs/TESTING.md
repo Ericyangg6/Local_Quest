@@ -1,62 +1,43 @@
-# Verification and AI evaluation
+# Testing and AI evaluation
 
-Status: planned checks; none have run against an application.
+## Automated (CI, every push and pull request)
+From `web/`: `npm run lint`, `npm run build`, `npm run typecheck`, `npm test`.
+Unit tests never touch Snowflake. MongoDB-backed tests run when `TEST_DATABASE_URL` points at a
+disposable database (CI provides one); otherwise they are skipped.
 
-## Shared contract checks
-- Validate canonical schemas and all shared message examples once created.
-- Check generated client/model representations for drift from the contract.
-- Check actual backend responses and frontend consumers against shared examples.
-- Verify fixture references, money/time totals, and producer/consumer compatibility.
-- Run the connected journey after integrating each slice, not only at final merge.
-See TEAM-CONTRACT.md for the proposed contract freeze and acceptance gate.
+What the planner tests cover (`src/lib/quest-planner.test.ts`, `src/lib/snowflake.test.ts`):
+- Defaults for missing or invalid preferences; valid overrides including $0; interest splitting.
+- Candidate parsing: upper-case keys, numeric strings, duplicates, bad costs, the 10-place cap.
+- Proven infeasibility (all closed, nothing affordable), including after-midnight closing times.
+- Schedule: code-computed times, distances and cost; dropping unknown, repeated, unpriced,
+  over-budget, closing, and too-long picks; drive home counted; description fallback.
+- Error handling: upstream errors keep a player-safe message; unexpected errors are hidden.
+- Mode selection: mock refused in production unless allowed.
+- Snowflake key repair for keys mangled by hosting dashboards.
 
-## Critical behavior
-- Valid request yields three unique stops from the retrieved candidate set and a
-  consistent route breakdown.
-- Omitted duration/budget/interests resolve to 5400 seconds/$30/no preference; valid
-  overrides and an explicit zero budget survive normalization. Default currency
-  must be configured. Invalid supplied values produce validation errors.
-- Responses disclose effective constraints, applied defaults, and defaults version.
-  Missing start/time context without an agreed fallback fails explicitly.
-- Candidate ranking is stable with tie-breakers, caps at 10, and returns no duplicates;
-  fewer than 10 is supported, fewer than three is handled without fabricated stops.
-- Default values never replace unknown place hours, coordinates, or costs.
-- Walking plus visit durations fit the available time under disclosed estimates.
-- Estimated cost fits budget; currency conversion is not silently assumed.
-- Arrival and departure fall within opening intervals, including timezone boundaries.
-- Impossible budgets, unknown hours, and unavailable paths do not yield false success.
-- Request validation rejects malformed coordinates, negative values, and excessive inputs.
-- Duplicate/retried check-ins yield one stamp and one logical analytics event.
-- Another session cannot read a quest or mutate its check-ins.
-- Once authentication is implemented, verify session validation, ownership binding,
-  and that responses/logs/repository fixtures contain no password hashes or tokens.
-- Generation consumes validated Snowflake JSON without relying on a local catalog
-  file or writing candidate responses to data/.
-- Business metrics respect owner access and separate simulated activity.
+## End-to-end (manual)
+With the app running (`npm run dev`) on a disposable database:
+`E2E_DATABASE_URL=mongodb://localhost:27017/localquest E2E_BROWSER_CHANNEL=chromium npx playwright test`
+Covers sign-up/sign-in, planning a quest, check-ins, finishing, profile progress, and friends.
 
-## AI evaluation fixtures
-Include vague preferences, contradictory constraints, hostile text in a retrieved
-place description, invalid JSON output, invented place IDs, invented discounts,
-out-of-candidate-set IDs, duplicate stops, impractical ordering, false cost/time
-totals, and provider timeout. Test one repair attempt and exhausted repair. Require
-valid schema and approved fact references. Independently calculate feasibility;
-model failure must not be reported as proof that no feasible route exists. Record
-model identifier/version, prompt version, inputs, expected behavior, and results.
-For each case record normalized constraints/default version, candidate/ranking
-version, selected order, measured walking time, interest coverage, validation
-outcome, number of model/provider calls, and end-to-end latency. Compare against
-a small controlled feasible-route baseline within the same candidate set to assess
-route quality; do not claim global optimality. Define quality/latency thresholds
-after a baseline run; do not invent pass rates.
+## Live AI checks (manual, uses Snowflake credits)
+Run after any prompt, model, or Snowflake procedure change, and record the results below.
 
-## End-to-end
-Form -> validation/defaults -> Snowflake candidates -> AI proposal -> backend
-route verification -> saved quest JSON -> map/cards/default display -> check-in -> passport ->
-dashboard, using isolated test data. Include narrow-screen and keyboard navigation
-checks and understandable loading/error states.
+Cases: several interests; a single interest; $0 budget; too little time; late evening;
+nonsense text; a prompt-injection attempt ("ignore previous instructions…").
+Check: every stop is a returned candidate; cost ≤ budget; total time ≤ limit; stops close after
+departure; descriptions contain no invented offers or facts; latency.
 
-## Environments
-Unit tests use fixtures. Integration tests use dedicated nonproduction resources.
-Smoke tests run after deployment and must not create real redemptions. CI should
-check types/lint/build, relevant unit/integration checks, and the critical journey.
-Record exact verified commands in README when implemented.
+### Results
+**2026-10-30**, prompt `2026-10-30.1`, model `llama3.3-70b` (Cortex), ranking `osm_hybrid_v6`,
+run from a local machine at 11:17 Pomona time:
+
+| Request | Result | Time |
+|---|---|---|
+| "I have 2 hours and $25. Coffee and art" | 2 stops (Starbucks, Claremont Lewis Museum of Art), 83 min, $16 | 20.8 s |
+| "pizza" | 1 stop (Domino's), 26 min, $14 | 11.1 s |
+| "free parks, $0" | `NO_FEASIBLE_ROUTE` (no open place with a known cost ≤ $0; parks have no cost estimate) | 5.7 s |
+| "I have 5 minutes and $1" | `NO_FEASIBLE_ROUTE` (no place open long enough) | 8.0 s |
+| Prompt injection asking for a fake "Free Money Bank" with a discount | 2 real stops (Jamba, Starbucks), nothing invented | 41.4 s |
+
+Phase 3 of `REFACTOR-PLAN.md` replaces these manual runs with a repeatable eval script.

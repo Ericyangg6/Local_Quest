@@ -64,7 +64,7 @@ export default async function QuestPage({ params }: { params: Promise<{ questId:
 
         {quest.mock && (
           <p className="quest-note quest-note__text">
-            Demo data: these places and times come from the API&apos;s mock mode, not Snowflake.
+            Demo data: these places and times come from the planner&apos;s mock mode, not Snowflake.
           </p>
         )}
 

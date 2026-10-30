@@ -10,9 +10,9 @@ import "@/features/quests/quests.css";
 
 export const metadata: Metadata = { title: "Quests · Local Quest" };
 
-// The "Plan my quest" server action runs in this route and waits for the quest API (live Snowflake +
-// Cortex planning takes ~15-40 s, up to the 90 s client timeout). Serverless hosts such as Vercel
-// stop functions earlier by default, so allow up to 2 minutes.
+// The "Plan my quest" server action runs in this route and waits for Snowflake (place search plus two
+// Cortex calls, ~15-40 s). Serverless hosts such as Vercel stop functions earlier by default, so allow
+// up to 2 minutes.
 export const maxDuration = 120;
 
 function summarize(quest: QuestView): QuestSummary {

@@ -2,9 +2,9 @@ import { hash } from "@node-rs/argon2";
 import { expect, test, type Page } from "@playwright/test";
 import { MongoClient, ObjectId } from "mongodb";
 
-// Full connected journey: web (Auth.js + MongoDB) → Next.js server → quest API (POST /v1/quests)
-// → Snowflake/model adapters. Needs the API running at the app's QUEST_API_URL. In mock mode the
-// route is the API's two-stop demo fixture; with live Snowflake it is a real Pomona route.
+// Full journey: web (Auth.js + MongoDB) → Next.js server action → quest planner → Snowflake.
+// With QUEST_PLANNER=mock (the default in development) the route uses the demo fixtures;
+// with QUEST_PLANNER=snowflake it is a real Pomona route.
 const databaseUrl = process.env.E2E_DATABASE_URL;
 if (!databaseUrl) throw new Error("Set E2E_DATABASE_URL to the disposable database the app under test uses.");
 

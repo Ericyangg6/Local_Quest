@@ -13,7 +13,7 @@ Commands, in first-run order:
                               CALL LOCAL_QUEST.APP.FIND_QUEST_LOCATIONS(PARSE_JSON(<json>), <address>)
 
 Connection settings come from environment variables or the project's main .env
-(local-quest/.env, shared with the API): SNOWFLAKE_ACCOUNT, SNOWFLAKE_USER (login
+(local-quest/.env): SNOWFLAKE_ACCOUNT, SNOWFLAKE_USER (login
 name), SNOWFLAKE_PRIVATE_KEY_PATH, optional SNOWFLAKE_PRIVATE_KEY_PASSPHRASE, and
 SNOWFLAKE_DATABASE (default LOCAL_QUEST). Admin commands always use role LQ_OWNER
 and warehouse LQ_WH, not the API's SNOWFLAKE_ROLE.
