@@ -2,7 +2,7 @@ import "server-only";
 import { ObjectId, type Collection } from "mongodb";
 import { getMongoClient } from "./db";
 import { summarizeProgress, type CheckIn, type PlayerProgress } from "./progress";
-import type { QuestRoute } from "./quest-api";
+import type { QuestRoute } from "./quest-types";
 
 /**
  * Saved quests, one document per generated route, owned by one user (`quests` collection).

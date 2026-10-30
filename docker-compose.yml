@@ -1,9 +1,9 @@
-# Production-like stack on one machine: MongoDB + quest API + web app.
-# Only the web app is published; the API is reachable only inside this network, with a token.
+# Production-like stack on one machine: MongoDB + the web app (which also plans quests).
 #
-#   1. Fill in .env (API + Snowflake, from .env.example) and web/.env.local (logins, from web/.env.example).
-#   2. Add API_AUTH_TOKEN to .env:  echo "API_AUTH_TOKEN=$(openssl rand -hex 32)" >> .env
-#   3. docker compose up -d --build      then open http://localhost:${WEB_PORT:-3000}
+#   1. Fill in web/.env.local (from web/.env.example) with QUEST_PLANNER=snowflake and the
+#      app's SNOWFLAKE_* login, and set SNOWFLAKE_PRIVATE_KEY_PATH to the .p8 file on this machine.
+#   2. SNOWFLAKE_PRIVATE_KEY_PATH=/path/to/key.p8 docker compose up -d --build
+#      then open http://localhost:${WEB_PORT:-3000}
 #
 # See docs/Deployment.md for hosted deployment, smoke checks, and rollback.
 
@@ -19,44 +19,28 @@ services:
       timeout: 5s
       retries: 5
 
-  api:
-    build: ./api
-    restart: unless-stopped
-    env_file: .env
-    environment:
-      APP_ENV: production
-      HOST: 0.0.0.0
-      PORT: "8080"
-      API_AUTH_TOKEN: ${API_AUTH_TOKEN:?Set API_AUTH_TOKEN in .env (openssl rand -hex 32)}
-      # The key file is mounted below; the host path in .env doesn't exist inside the container.
-      SNOWFLAKE_PRIVATE_KEY_PATH: /run/secrets/snowflake_key.p8
-    secrets:
-      - source: snowflake_key
-        target: snowflake_key.p8
-    expose:
-      - "8080"
-
   web:
     build: ./web
     restart: unless-stopped
     env_file: web/.env.local
     environment:
       DATABASE_URL: mongodb://mongo:27017/localquest
-      QUEST_API_URL: http://api:8080
-      QUEST_API_TOKEN: ${API_AUTH_TOKEN:?Set API_AUTH_TOKEN in .env}
+      # The key file is mounted below; the host path doesn't exist inside the container.
+      SNOWFLAKE_PRIVATE_KEY_PATH: /run/secrets/snowflake_key.p8
       # Auth.js must trust the Host header when it isn't running on Vercel.
       AUTH_TRUST_HOST: "true"
+    secrets:
+      - source: snowflake_key
+        target: snowflake_key.p8
     ports:
       - "${WEB_PORT:-3000}:3000"
     depends_on:
       mongo:
         condition: service_healthy
-      api:
-        condition: service_healthy
 
 secrets:
   snowflake_key:
-    file: ${SNOWFLAKE_PRIVATE_KEY_PATH:?Set SNOWFLAKE_PRIVATE_KEY_PATH in .env to your .p8 key file}
+    file: ${SNOWFLAKE_PRIVATE_KEY_PATH:?Set SNOWFLAKE_PRIVATE_KEY_PATH to the app's .p8 key file}
 
 volumes:
   mongo-data:

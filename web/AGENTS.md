@@ -46,42 +46,22 @@ For teammates and their AI assistants. Scope: `web/`.
   links to `/settings`, Support is "coming soon" until a support destination exists.
 - Shared UI: `AppHeader`, `PixelButton`, `WideButton`/`WideLink`, `TextField`/`PasswordField`,
   `AuthBanner`, `BottomNav`, `PlayerAvatar`, `PixelSprite` (pixel art as run data in `sprites.ts`).
-- Quest API: `src/lib/quest-api.ts` calls `POST /v1/quests` from the Next.js server only (after the
-  session check), at `QUEST_API_URL` (default `http://localhost:8080`), and validates the reply with zod.
+- Quest planning: `src/lib/quest-planner.ts` (preferences, candidates, schedule checks, prompts),
+  `src/lib/snowflake.ts` (Snowflake SQL REST API with key-pair JWT; server only), mock fixtures in
+  `src/lib/quest-planner.mock.ts`, shared types in `src/lib/quest-types.ts`. Called only by the
+  `generateQuest` server action after the session check. `QUEST_PLANNER=mock|snowflake`.
   Saved quests and progress (XP, level, streak, badges): `src/lib/quests.ts`, `src/lib/progress.ts`.
-  The FastAPI backend still does not verify sessions itself; it is reachable only by the web server in
-  the intended deployment. E2E journey: `e2e/journey.spec.ts` (needs the API running).
+  E2E journey: `e2e/journey.spec.ts` (mock or live planner).
 
-## Before working
+## Boundaries
 
-Read the root [AGENTS.md](../AGENTS.md), [product brief](../PROJECT.md),
-[architecture](../docs/ARCHITECTURE.md), [shared contract](../docs/TEAM-CONTRACT.md),
-and [current plan](../docs/PLAN.md). Consult the [skills catalog](../docs/skills.md)
-when selecting skills; read each selected skill's actual instructions.
-
-## Responsibilities and boundaries
-
-Own the user interface: duration/budget/preferences form, applied-default display,
-quest map/cards, passport, and authorized dashboard presentation.
-
-- Choose the frontend technology and record the choice in the architecture.
-- Send structured inputs to the backend and render the validated Quest response.
-- Omit blank optional fields so backend defaults apply; display effective inputs
-  and defaults returned by the API. Do not maintain competing default rules.
-- Use shared contract examples for labeled mock mode; do not invent response fields.
-- Keep Snowflake/model/private service credentials out of browser code.
-- Handle loading, invalid input, insufficient candidates, provider failure, and
-  failed AI planning as distinct states where the contract distinguishes them.
-- Verify narrow-screen and keyboard use, response rendering, and the connected flow.
-
-## Working agreement
-
-Work within your assigned paths; coordinate changes outside them. Component owners
-choose technology while preserving shared interfaces. Create internal folders and
-implementation only as required by an assigned, authorized task. This folder setup
-alone does not authorize building, installing, or deploying the application.
-Communicate assignments and results directly with the team; report actual checks,
-mock/live dependencies, and remaining integration needs in chat.
+- Read the root [AGENTS.md](../AGENTS.md) and [architecture](../docs/ARCHITECTURE.md) first.
+- Snowflake credentials and `snowflake.ts` stay server-only (it imports `server-only`); after a
+  build, `grep -r SNOWFLAKE .next/static` must find nothing.
+- The model only picks candidate IDs and writes descriptions; times, distances, costs, and
+  checks stay in code. Keep `QuestRoute` backward compatible: saved quests are stored as is.
+- Handle loading, nothing-fits, timeout, and unavailable states distinctly in the quest form.
+- Verify narrow-screen and keyboard use for new screens.
 
 <!-- BEGIN:nextjs-agent-rules -->
 

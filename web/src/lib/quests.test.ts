@@ -1,6 +1,6 @@
 import { ObjectId } from "mongodb";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
-import type { QuestRoute } from "./quest-api";
+import type { QuestRoute } from "./quest-types";
 
 // Start/check-in/finish rules against a real MongoDB. Skipped unless TEST_DATABASE_URL points at a
 // disposable database, e.g. TEST_DATABASE_URL=mongodb://localhost:27017/localquest_unit npm test

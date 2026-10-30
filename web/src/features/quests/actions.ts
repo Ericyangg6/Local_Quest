@@ -5,7 +5,8 @@ import { redirect } from "next/navigation";
 import { ObjectId } from "mongodb";
 import { z } from "zod";
 import { auth } from "@/auth";
-import { requestQuestRoute, type QuestPreferences } from "@/lib/quest-api";
+import { planQuest } from "@/lib/quest-planner";
+import type { QuestPreferences } from "@/lib/quest-types";
 import { checkInAtStop, deleteQuest, finishQuest, saveQuest, startQuest } from "@/lib/quests";
 import { consume } from "@/lib/rate-limit";
 
@@ -19,7 +20,7 @@ export interface NewQuestState {
   message?: string;
 }
 
-/** Each quest costs a Snowflake query and a model call; keep one player from flooding them. */
+/** Each quest costs a Snowflake query and two model calls; keep one player from flooding them. */
 const QUEST_REQUESTS = { limit: 10, windowMs: 10 * 60_000 };
 const messageSchema = z
   .string()
@@ -38,8 +39,7 @@ function field(formData: FormData, name: string) {
 }
 
 const ERROR_TEXT: Record<string, string> = {
-  NO_FEASIBLE_ROUTE: "", // the API's own message explains what didn't fit
-  VALIDATION_ERROR: "That request couldn't be read. Try rewording it.",
+  NO_FEASIBLE_ROUTE: "", // the planner's own message explains what didn't fit
   UPSTREAM_INVALID_RESPONSE: "The planner got confused this time. Please try again.",
   UPSTREAM_UNAVAILABLE: "The quest planner is unavailable right now. Please try again in a moment.",
   UPSTREAM_TIMEOUT: "Planning took too long. Please try again.",
@@ -58,13 +58,15 @@ export async function generateQuest(_previous: NewQuestState, formData: FormData
     return { error: "You've planned a lot of quests recently. Try again in a few minutes.", message };
   }
 
-  const result = await requestQuestRoute(message);
+  const result = await planQuest(message);
   if (!result.ok) {
-    let error = ERROR_TEXT[result.code] || result.message;
-    if (result.code === "RATE_LIMITED" && result.retryAfterSeconds) {
-      error = `Too many quests are being planned. Try again in ${result.retryAfterSeconds} seconds.`;
-    }
-    return { error, preferences: result.preferences, requestId: result.requestId, message };
+    return {
+      error: ERROR_TEXT[result.code] || result.message,
+      // Shown with "try more time or a bigger budget", so only when nothing fit.
+      preferences: result.code === "NO_FEASIBLE_ROUTE" ? result.preferences : undefined,
+      requestId: result.requestId,
+      message,
+    };
   }
 
   const questId = await saveQuest(userId, message, result.route);
